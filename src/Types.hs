@@ -14,25 +14,35 @@ data Prop = None
           | (:<->) Prop Prop
 
 instance Show Prop where
-    show None       = "<X>"
-    show (Atom a  ) = a
-    show (Not  p  ) = "~" ++ show p
-    show (a :/\  b) = "(" ++ show a ++ " /\\ " ++ show b ++ ")"
-    show (a :\/  b) = "(" ++ show a ++ " \\/ " ++ show b ++ ")"
-    show (p :->  q) = "(" ++ show p ++ " -> " ++ show q ++ ")"
-    show (p :<-> q) = "(" ++ show p ++ " <-> " ++ show q ++ ")"
+  show None       = "<X>"
+  show (Atom a  ) = a
+  show (Not  p  ) = "~" ++ show p
+  show (a :/\  b) = "(" ++ show a ++ " /\\ " ++ show b ++ ")"
+  show (a :\/  b) = "(" ++ show a ++ " \\/ " ++ show b ++ ")"
+  show (p :->  q) = "(" ++ show p ++ " -> " ++ show q ++ ")"
+  show (p :<-> q) = "(" ++ show p ++ " <-> " ++ show q ++ ")"
 
+-- | Reference for objects and goals during proof
 data PropRef = PropRef
-    {
-                 -- | final (sub) goals
-      _goal   :: [Prop]
-    ,
-                 -- | proof oject list
-      _object :: [Prop]
-    }
-    deriving Show
+  {
+    -- | final (sub) goals
+    _goal   :: [Prop]
+  ,
+    -- | proof oject list
+    _object :: [Prop]
+  }
+  deriving Show
 
 makeLenses ''PropRef
 
+-- | result of the proof, wither success or fail at a step 
+data Result = Proved | Failed Prop deriving Show
+
 -- * the `Proof` type draft
-type Dummy = ExceptT Prop (State PropRef)
+type Proof = ExceptT Result (State PropRef)
+
+-- id of a proof object
+type ObjectId = Int
+
+-- ? theorem type
+type Theorem = Prop -> Maybe Prop

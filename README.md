@@ -1,3 +1,3 @@
 # HsProof
 
-A simple theorem proofer in Haskell.
+A simple theorem proofer written in Haskell.
