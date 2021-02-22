@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c41ba48ed45f81d72ca92dbecee752925fab29592575db8ff296ac91ef0fc4d2
+-- hash: ccb3a2a10b0b16b967def836fef8b15f70bb65ea0ecaf93639deede9ca78e05a
 
 name:           HsProof
 version:        0.1.0.0
@@ -30,7 +30,7 @@ library
       Lib
       Logic
       Proof
-      ProofST
+      ProofRef
       Types
   other-modules:
       Paths_HsProof

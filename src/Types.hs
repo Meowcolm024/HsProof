@@ -26,6 +26,18 @@ instance Show Prop where
   show (p :->  q) = "(" ++ show p ++ " -> " ++ show q ++ ")"
   show (p :<-> q) = "(" ++ show p ++ " <-> " ++ show q ++ ")"
 
+-- | apply transform function to prop
+mapProp :: (Prop -> Prop) -> Prop -> Prop
+mapProp _ None       = None
+mapProp f T          = f T
+mapProp f F          = f F
+mapProp _ (Atom x  ) = Atom x
+mapProp f (Not  t  ) = Not (f t)
+mapProp f (p :->  q) = f p :-> f q
+mapProp f (p :<-> q) = f p :<-> f q
+mapProp f (p :/\  q) = f p :/\ f q
+mapProp f (p :\/  q) = f p :\/ f q
+
 -- | Reference for objects and goals during proof
 data PropRef = PropRef
   {
@@ -57,7 +69,10 @@ class Appliable a where
 
 instance Appliable Prop where
   app p@(x :-> y) q = if y == q then Right x else Left (Failed p)
-  app p           q = if p == q then Left Proved else Left (Failed p)
+  app p@(x :<-> y) q | x == q    = Right y
+                     | y == q    = Right x
+                     | otherwise = Left (Failed p)
+  app p q = if p == q then Left Proved else Left (Failed p)
 
 instance Appliable Theorem' where
   app t p = t p

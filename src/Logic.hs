@@ -14,3 +14,9 @@ contrapostive x         = Left $ Failed x
 doubleNegative :: Theorem'
 doubleNegative (Not (Not p)) = Right p
 doubleNegative x             = Left $ Failed x
+
+eliminateDN :: Theorem'
+eliminateDN = Right . mapProp el
+  where
+    el (Not (Not p)) = el p
+    el p             = p
