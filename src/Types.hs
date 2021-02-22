@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Types where
@@ -61,18 +62,21 @@ type Proof = ExceptT Result (State PropRef)
 type ObjectId = Int
 
 -- * theorem types
-type Theorem' = Prop -> Either Result Prop
-type Theorem = [Prop] -> Either Result Prop
+type Theorem = Prop -> Either Result Prop
+type Theorem' = [Prop] -> Either Result Prop
 
-class Appliable a where
-  app :: a -> Prop -> Either Result Prop
+class Appliable a b where
+  app :: a -> b -> Either Result Prop
 
-instance Appliable Prop where
+instance Appliable Prop Prop where
   app p@(x :-> y) q = if y == q then Right x else Left (Failed p)
   app p@(x :<-> y) q | x == q    = Right y
                      | y == q    = Right x
                      | otherwise = Left (Failed p)
   app p q = if p == q then Left Proved else Left (Failed p)
 
-instance Appliable Theorem' where
+instance Appliable Theorem Prop where
+  app t p = t p
+
+instance Appliable Theorem' [Prop] where
   app t p = t p

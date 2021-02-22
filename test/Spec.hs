@@ -7,8 +7,8 @@ import           ProofRef
 import           Types
 
 -- | show the first goal
-status :: Proof Prop
-status = lift get >>= except . Right . head . _goal
+status :: Proof PropRef
+status = lift get >>= except . Right
 
 -- | proof a -> (a -> ~b) -> (~c -> b) -> c
 simpleProof :: Proof Prop
@@ -35,7 +35,7 @@ simpleProof' = do
     apply a
     abort
 
-statusTest :: Proof Prop
+statusTest :: Proof PropRef
 statusTest = do
     a    <- newProofObject (Atom "a")
     h    <- newProofObject (Atom "b" :-> Atom "c")
@@ -43,7 +43,19 @@ statusTest = do
     apply h
     status
 
-doProof :: Proof Prop -> Either Result Prop
+-- | exf
+exfTest :: Proof Prop
+exfTest = do
+    a <- newProofObject (Atom "a")
+    b <- newProofObject (Not (Atom "a"))
+    d <- conjunction `applyToM'` [a, b]
+    goal <- newGoal (Atom "c")
+    let theorem p@(x :/\ Not y) = if x == y then Right F else Left $ Failed p
+    theorem `applyTo'` d
+    exfalso d
+    qed
+
+doProof :: Proof a -> Either Result a
 doProof p = evalState (runExceptT p) newPropRef
 
 main :: IO ()
@@ -51,3 +63,4 @@ main = do
     print $ doProof simpleProof
     print $ doProof simpleProof'
     print $ doProof statusTest
+    print $ doProof exfTest

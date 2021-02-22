@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Proof where
 
 import           Control.Monad.Trans
@@ -22,8 +23,16 @@ abort = do
         []      -> Left (Failed None)
         (x : _) -> Left (Failed x)
 
+exfalso :: ObjectId -> Proof ()
+exfalso i = do
+    ref <- lift get
+    k   <- getProofObject i
+    case k of
+        F -> finishGoal
+        x -> except $ Left (Failed x)
+
 -- | apply to the goal
-apply' :: Appliable a => a -> Proof ()
+apply' :: Appliable a Prop => a -> Proof ()
 apply' p = do
     ref <- lift get
     case app p . head . _goal $ ref of
@@ -35,8 +44,20 @@ apply' p = do
 apply :: ObjectId -> Proof ()
 apply i = apply' =<< getProofObject i
 
+-- | apply to multiple props
+applyToM' :: Appliable a [Prop] => a -> [ObjectId] -> Proof ObjectId
+applyToM' p is = do
+    ref <- lift get
+    ks  <- mapM getProofObject is
+    case app p ks of
+        Right p' -> newProofObject p'
+        Left  f  -> except (Left f)
+
+-- applyToM :: ObjectId -> [ObjectId] -> Proof Prop 
+-- applyToM t ps = flip applyToM' ps =<< getProofObject t
+
 -- | apply to a prop
-applyTo' :: Appliable a => a -> ObjectId -> Proof ()
+applyTo' :: Appliable a Prop => a -> ObjectId -> Proof ()
 applyTo' p i = do
     ref <- lift get
     k   <- getProofObject i
@@ -45,5 +66,5 @@ applyTo' p i = do
         Left  f  -> except (Left f)
 
 -- | same as applyTo', but using ObjectId
-applyTo :: ObjectId -> ObjectId  -> Proof ()
+applyTo :: ObjectId -> ObjectId -> Proof ()
 applyTo t p = flip applyTo' p =<< getProofObject t
