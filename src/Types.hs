@@ -1,11 +1,10 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Types where
 
 import           Control.Lens.TH                ( makeLenses )
 import           Control.Monad.Trans.Except     ( ExceptT )
-import           Control.Monad.Trans.State      ( State
-                                                , StateT
-                                                )
+import           Control.Monad.Trans.State      ( State )
 
 data Prop = None              -- ^ @_@
           | T                 -- ^ True
@@ -16,6 +15,7 @@ data Prop = None              -- ^ @_@
           | (:\/) Prop Prop   -- ^ or
           | (:->) Prop Prop   -- ^ imply
           | (:<->) Prop Prop  -- ^ <->
+          deriving Eq
 
 instance Show Prop where
   show None       = "<X>"
@@ -51,3 +51,13 @@ type ObjectId = Int
 -- * theorem types
 type Theorem' = Prop -> Either Result Prop
 type Theorem = [Prop] -> Either Result Prop
+
+class Appliable a where
+  app :: a -> Prop -> Either Result Prop
+
+instance Appliable Prop where
+  app p@(x :-> y) q = if y == q then Right x else Left (Failed p)
+  app p           q = if p == q then Left Proved else Left (Failed p)
+
+instance Appliable Theorem' where
+  app t p = t p

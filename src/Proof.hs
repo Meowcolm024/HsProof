@@ -1,35 +1,25 @@
 module Proof where
 
-import           Control.Lens
 import           Control.Monad.Trans
+import           Control.Monad.Trans.Except     ( except )
 import           Control.Monad.Trans.State
+import           ProofRef
 import           Types
 
-newProof l p = lift $ do
-    ref <- get
-    put $ ref & l %~ (++ [p])
-    return $ ref ^. object & length
+qed :: Proof Prop
+qed = do
+    ref <- lift get
+    except $ case _goal ref of
+        []      -> Left Proved
+        (x : _) -> Left (Failed x)
 
-newProofObject :: Prop -> Proof ObjectId
-newProofObject = newProof object
+apply' :: Appliable a => a -> Proof ()
+apply' p = do
+    ref <- lift get
+    case app p . head . _goal $ ref of
+        Left  Proved     -> finishGoal
+        Left  (Failed p) -> except $ Left (Failed p)
+        Right p          -> mutGoal 0 p
 
-newGoal :: Prop -> Proof ObjectId
-newGoal = newProof goal
-
-mutProof l i p = lift $ do
-    ref <- get
-    put $ ref & l . ix i .~ p
-
-mutProofObject :: ObjectId -> Prop -> Proof ()
-mutProofObject = mutProof object
-
-mutGoal :: ObjectId -> Prop -> Proof ()
-mutGoal = mutProof goal
-
-getProofObject :: ObjectId -> Proof Prop
-getProofObject i = lift $ do
-    ref <- get
-    return $ (ref ^. object) ^?! ix i
-
-newPropRef :: PropRef
-newPropRef = PropRef [] []
+apply :: ObjectId -> Proof ()
+apply i = apply' =<< getProofObject i
