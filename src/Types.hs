@@ -2,16 +2,20 @@
 module Types where
 
 import           Control.Lens.TH                ( makeLenses )
-import           Control.Monad.State            ( State )
 import           Control.Monad.Trans.Except     ( ExceptT )
+import           Control.Monad.Trans.State      ( State
+                                                , StateT
+                                                )
 
-data Prop = None
-          | Atom String
-          | Not Prop
-          | (:/\) Prop Prop
-          | (:\/) Prop Prop
-          | (:->) Prop Prop
-          | (:<->) Prop Prop
+data Prop = None              -- ^ @_@
+          | T                 -- ^ True
+          | F                 -- ^ False
+          | Atom String       -- ^ prop
+          | Not Prop          -- ^ negate
+          | (:/\) Prop Prop   -- ^ and
+          | (:\/) Prop Prop   -- ^ or
+          | (:->) Prop Prop   -- ^ imply
+          | (:<->) Prop Prop  -- ^ <->
 
 instance Show Prop where
   show None       = "<X>"
@@ -44,5 +48,6 @@ type Proof = ExceptT Result (State PropRef)
 -- id of a proof object
 type ObjectId = Int
 
--- ? theorem type
-type Theorem = Prop -> Maybe Prop
+-- * theorem types
+type Theorem' = Prop -> Either Result Prop
+type Theorem = [Prop] -> Either Result Prop
