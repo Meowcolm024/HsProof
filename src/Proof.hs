@@ -8,7 +8,7 @@ import           ProofRef
 import           Types
 
 -- | finish the proof 
-qed :: Proof Prop
+qed :: Proof a
 qed = do
     ref <- lift get
     except $ case _goal ref of
@@ -16,7 +16,7 @@ qed = do
         (x : _) -> Left (Failed x)
 
 -- | abort the proof and return current goal
-abort :: Proof Prop
+abort :: Proof a
 abort = do
     ref <- lift get
     except $ case _goal ref of
@@ -45,16 +45,17 @@ apply :: ObjectId -> Proof ()
 apply i = apply' =<< getProofObject i
 
 -- | apply to multiple props
-applyToM' :: Appliable a [Prop] => a -> [ObjectId] -> Proof ObjectId
-applyToM' p is = do
+applyToM :: Appliable a [Prop] => a -> [ObjectId] -> Proof ObjectId
+applyToM p is = do
     ref <- lift get
     ks  <- mapM getProofObject is
     case app p ks of
         Right p' -> newProofObject p'
         Left  f  -> except (Left f)
 
--- applyToM :: ObjectId -> [ObjectId] -> Proof Prop 
--- applyToM t ps = flip applyToM' ps =<< getProofObject t
+-- | applyM, but modify one instead of creating a new one
+applyM' :: Appliable a [Prop] => a -> [ObjectId] -> ObjectId -> Proof ()
+applyM' t ps o = t `applyToM` ps >>= getProofObject >>= mutProofObject o
 
 -- | apply to a prop
 applyTo' :: Appliable a Prop => a -> ObjectId -> Proof ()

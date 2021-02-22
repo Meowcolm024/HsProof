@@ -46,13 +46,27 @@ statusTest = do
 -- | exf
 exfTest :: Proof Prop
 exfTest = do
-    a <- newProofObject (Atom "a")
-    b <- newProofObject (Not (Atom "a"))
-    d <- conjunction `applyToM'` [a, b]
+    a    <- newProofObject (Atom "a")
+    b    <- newProofObject (Not (Atom "a"))
+    d    <- conjunction `applyToM` [a, b]
     goal <- newGoal (Atom "c")
     let theorem p@(x :/\ Not y) = if x == y then Right F else Left $ Failed p
     theorem `applyTo'` d
     exfalso d
+    qed
+
+-- | q -> (q -> ~q) -> (~p -> r /\ s) -> r
+example :: Proof PropRef
+example = do
+    p    <- newProofObject (Not (Atom "q"))
+    h    <- newProofObject (Atom "p" :-> Atom "q")
+    g    <- newProofObject (Not (Atom "p") :-> (Atom "r" :/\ Atom "s"))
+    goal <- newGoal (Atom "r")
+    contrapostive `applyTo'` h
+    applyM' imply [h, p] h
+    applyM' imply [g, h] g
+    disjunctionL `applyTo'` g
+    apply g
     qed
 
 doProof :: Proof a -> Either Result a
@@ -64,3 +78,4 @@ main = do
     print $ doProof simpleProof'
     print $ doProof statusTest
     print $ doProof exfTest
+    print $ doProof example
