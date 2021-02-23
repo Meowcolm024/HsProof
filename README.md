@@ -1,6 +1,11 @@
 # HsProof
 
-A simple theorem proofer written in Haskell.
+A simple theorem proof assistant written in Haskell.
+
+An extremely flawed theorem proof assistant not meant for practical use.
+But this is a really fun project to work with :P
+
+## Examples
 
 current status:
 
@@ -28,6 +33,7 @@ proofExample = proof exampleTheorem $ do
 another example:
 
 ``` haskell
+-- | ~t -> (s -> t) -> (~r \/ ~f -> s /\ l) -> r
 hw :: Prop
 hw =
     Not (Atom "t")
@@ -39,18 +45,18 @@ proofhw :: ProofResult PropRef
 proofhw = proof hw $ do
     p  <- intro                         -- p: ~t
     h1 <- intro                         -- h1: s -> t
-    h2 <- intro                         -- ~r \/ ~f -> s /\ l
-    contrapostive `applyTo'` h1         -- ~t -> ~s
+    h2 <- intro                         -- h2: ~r \/ ~f -> s /\ l
+    contrapostive `applyTo'` h1         -- h1: ~t -> ~s
     q <- applyToM imply [h1, p]         -- q: ~ s
-    contrapostive `applyTo'` h2         -- ~(s /\ l) -> ~ (~r \/ ~f)
-    -- create a tmp l for addition: s -> s \/ l
+    contrapostive `applyTo'` h2         -- h2: ~(s /\ l) -> ~ (~r \/ ~f)
+    -- create a tmp l for addition: ~s -> ~s \/ ~l
     tmp <- newProofObject (Not (Atom "l"))
     t   <- applyToM addition [q, tmp]   -- t: ~s \/ ~l
-    deMorgan `applyTo'` t               -- ~ (s /\ l)
-    applyToM' imply [h2, t] t           -- ~(~r \/ ~f)
-    deMorgan `applyTo'` t               -- ~~r /\ ~~f
-    eliminateDN `applyTo'` t            -- r /\ f
-    simplificationL `applyTo'` t        -- r
+    deMorgan `applyTo'` t               -- t: ~ (s /\ l)
+    applyToM' imply [h2, t] t           -- t: ~(~r \/ ~f)
+    deMorgan `applyTo'` t               -- t: ~~r /\ ~~f
+    eliminateDN `applyTo'` t            -- t: r /\ f
+    simplificationL `applyTo'` t        -- t: r
     apply t
     qed
 ```
