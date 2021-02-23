@@ -24,10 +24,10 @@ negation x@(p :/\ (Not q)) = if p == q then Right F else Left $ Failed x
 negation x@(p :\/ (Not q)) = if p == q then Right T else Left $ Failed x
 negation x                 = Left $ Failed x
 
-commutativity :: Theorem
-commutativity (p :/\ q) = Right $ q :/\ p
-commutativity (p :\/ q) = Right $ q :\/ p
-commutativity x         = Left $ Failed x
+commutative :: Theorem
+commutative (p :/\ q) = Right $ q :/\ p
+commutative (p :\/ q) = Right $ q :\/ p
+commutative x         = Left $ Failed x
 
 distributive :: Theorem
 distributive (p :/\ (q :\/ h)) = Right $ (p :\/ q) :/\ (p :\/ h)
@@ -48,12 +48,6 @@ contrapostive x         = Left $ Failed x
 doubleNegative :: Theorem
 doubleNegative (Not (Not p)) = Right p
 doubleNegative x             = Left $ Failed x
-
-eliminateDN :: Theorem
-eliminateDN = Right . mapProp el
- where
-  el (Not (Not p)) = el p
-  el p             = p
 
 -- ? not sure yet
 conjunction :: Theorem'
@@ -78,3 +72,15 @@ disjunction [p :\/ q, r@(Not _)] | r == p    = Right q
                                  | r == q    = Right p
                                  | otherwise = Left $ Failed r
 disjunction _ = Left $ Failed None
+
+-- simplify expr
+simpl :: Theorem
+simpl = Right . simpl'
+ where
+  simpl' :: Prop -> Prop
+  simpl' (Not (Not p :/\ Not q)) = simpl' p :\/ simpl' q
+  simpl' (Not (Not p :\/ Not q)) = simpl' p :/\ simpl' q
+  simpl' (Not (Not p          )) = simpl' p
+  simpl' (p :->  q             ) = simpl' p :-> simpl' q
+  simpl' (p :<-> q             ) = simpl' p :<-> simpl' q
+  simpl' p                       = p

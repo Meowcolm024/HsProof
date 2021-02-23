@@ -1,52 +1,9 @@
-# HsProof
+import           HsProof
+import           HsProof.Logic
+import           HsProof.Proof
+import           HsProof.ProofRef
+import           HsProof.Types
 
-![workflow](https://github.com/meowcolm024/HsProof/actions/workflows/haskell.yml/badge.svg)
-
-A simple proof assistant written in Haskell.
-
-An extremely flawed proof assistant not meant for practical use.
-But this is a really fun project to work with :P
-
-## Build
-
-``` sh
-$ stack build
-```
-
-run example:
-
-``` sh
-$ stack exec HsProof-example
-```
-
-## Examples
-
-current status:
-
-``` haskell
--- | q -> (q -> ~q) -> (~p -> r /\ s) -> r
-exampleTheorem :: Prop
-exampleTheorem =
-    Not (Atom "q")
-        :-> (Atom "p" :-> Atom "q")
-        :-> (Not (Atom "p") :-> Atom "r" :/\ Atom "s")
-        :-> Atom "r"
-
-proofExample :: ProofResult PropRef
-proofExample = proof exampleTheorem $ do
-    a <- intro      -- ~q
-    h <- intro      -- p -> q
-    g <- intro      -- ~p -> (r /\ s)
-    contrapostive `applyTo'` h
-    (h >$> g) >>= (`applyTo'` a)
-    disjunctionL `applyTo'` a
-    apply a
-    qed
-```
-
-another example:
-
-``` haskell
 -- | ~t -> (s -> t) -> (~r \/ ~f -> s /\ l) -> r
 hw :: Prop
 hw =
@@ -72,4 +29,9 @@ proofhw = proof hw $ do
     simplificationL `applyTo'` t        -- t: r
     apply t
     qed
-```
+
+main :: IO ()
+main = do
+    putStrLn $ "Prove: " ++ show hw
+    putStr "Result: "
+    printResult proofhw

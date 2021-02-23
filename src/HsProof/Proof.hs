@@ -6,9 +6,13 @@ import           Control.Monad                  ( (>=>) )
 import           Control.Monad.Except           ( runExceptT )
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Except     ( except )
-import           Control.Monad.Trans.State
+import           Control.Monad.Trans.State      ( get )
 import           HsProof.ProofRef
 import           HsProof.Types
+
+-- | admit
+admitted :: Proof a
+admitted = except $ Left Proved
 
 -- | finish the proof 
 qed :: Proof a
@@ -87,13 +91,9 @@ intro = do
             _         -> except $ Left (Failed x)
         _ -> except $ Left (Failed None)
 
--- | do proofs with intro
-proof :: Prop -> Proof a -> ProofResult a
-proof pp pf = evalState (runExceptT pf) (PropRef [pp] [])
-
 -- | copy a proof object
-fork :: ObjectId -> Proof ObjectId
-fork i = newProofObject =<< getProofObject i
+forkObj :: ObjectId -> Proof ObjectId
+forkObj i = newProofObject =<< getProofObject i
 
 -- | applyTo acts differently, so we need a separate method
 imply :: Theorem'
@@ -113,9 +113,6 @@ theorem :: Prop -> Theorem
 theorem t@(p :->  q) h = imply [t, h]
 theorem t@(p :<-> q) h = imply [t, h]
 theorem _            _ = Left $ Failed None
-
-($-) :: Prop -> Theorem -> Theorem
-p $- q = theorem p >=> q
 
 -- | lifted (>=>) combining theorems: (a -> b) -> (b -> c) => (a -> c)
 (>$>) :: ObjectId -> ObjectId -> Proof Theorem
