@@ -11,5 +11,6 @@ import           HsProof.Types
 proof :: Prop -> Proof a -> ProofResult a
 proof pp pf = evalState (runExceptT pf) (PropRef [pp] [])
 
+-- | print proof result
 printResult :: Show a => ProofResult a -> IO ()
 printResult = putStrLn . showResult

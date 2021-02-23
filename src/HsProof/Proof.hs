@@ -65,11 +65,11 @@ applyToM p is = do
         Right p' -> newProofObject p'
         Left  f  -> except (Left f)
 
--- | applyM, but modify one instead of creating a new one
+-- | <applyM>, but modify one instead of creating a new one
 applyToM' :: Appliable a [Prop] => a -> [ObjectId] -> ObjectId -> Proof ()
 applyToM' t ps o = t `applyToM` ps >>= getProofObject >>= mutProofObject o
 
--- | apply to a prop
+-- | apply to a <Prop>
 applyTo' :: Appliable a Prop => a -> ObjectId -> Proof ()
 applyTo' p i = do
     ref <- lift get
@@ -78,7 +78,7 @@ applyTo' p i = do
         Right p' -> mutProofObject i p'
         Left  f  -> except (Left f)
 
--- | same as applyTo', but using ObjectId
+-- | same as <applyTo'>, but using <ObjectId>
 applyTo :: ObjectId -> ObjectId -> Proof ()
 applyTo t p = flip applyTo' p =<< getProofObject t
 
@@ -98,14 +98,14 @@ imply [t@(p :->  q), h] = if p == h then Right q else Left $ Failed t
 imply [t@(_ :<-> _), h] = app t h
 imply _                 = Left $ Failed None
 
--- | lift a prop to theorem using ObjectId
+-- | lift a <Prop> to <Theorem> using ObjectId
 theorem' :: ObjectId -> Proof Theorem
 theorem' i = do
     ref <- lift get
     obj <- getProofObject i
     return $ theorem obj
 
--- | lifts a prop to theorem
+-- | lifts a <Prop> to <Theorem>
 theorem :: Prop -> Theorem
 theorem t@(p :->  q) h = imply [t, h]
 theorem t@(p :<-> q) h = imply [t, h]

@@ -7,7 +7,7 @@ import           Control.Lens.TH                ( makeLenses )
 import           Control.Monad.Trans.Except     ( ExceptT )
 import           Control.Monad.Trans.State      ( State )
 
-data Prop = None              -- ^ @_@
+data Prop = None              -- ^ None
           | T                 -- ^ True
           | F                 -- ^ False
           | Atom String       -- ^ prop
@@ -15,7 +15,7 @@ data Prop = None              -- ^ @_@
           | (:/\) Prop Prop   -- ^ and
           | (:\/) Prop Prop   -- ^ or
           | (:->) Prop Prop   -- ^ imply
-          | (:<->) Prop Prop  -- ^ <->
+          | (:<->) Prop Prop  -- ^ sufficient and necessary
           deriving Eq
 
 infix 8 :/\
@@ -60,10 +60,11 @@ makeLenses ''PropRef
 -- | result of the proof, wither success or fail at a step 
 data Result = Proved | Failed Prop deriving Show
 
--- * the `Proof` type draft
+-- * the `Proof` types
 type Proof = ExceptT Result (State PropRef)
 type Proof' = Proof PropRef
 
+-- | the proof result
 type ProofResult = Either Result
 
 -- | show result
@@ -79,6 +80,7 @@ type ObjectId = Int
 type Theorem = Prop -> Either Result Prop
 type Theorem' = [Prop] -> Either Result Prop
 
+-- * Appliable typeclass
 class Appliable a b where
   app :: a -> b -> Either Result Prop
 

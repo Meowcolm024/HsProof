@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">HsProof.ProofRef</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">void</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.State</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="HsProof.Types.html"><span class="hs-identifier">HsProof.Types</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- | abstract function for creating a new proof object</span><span>
+</span><span id="line-10"></span><span id="newProof"><span class="annot"><span class="annottext">newProof :: ASetter PropRef PropRef [a] [a] -&gt; a -&gt; t (StateT PropRef m) Int
+</span><a href="HsProof.ProofRef.html#newProof"><span class="hs-identifier hs-var hs-var">newProof</span></a></span></span><span> </span><span id="local-6989586621679139964"><span class="annot"><span class="annottext">l :: ASetter PropRef PropRef [a] [a]
+</span><a href="#local-6989586621679139964"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679139963"><span class="annot"><span class="annottext">p :: a
+</span><a href="#local-6989586621679139963"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StateT PropRef m Int -&gt; t (StateT PropRef m) Int
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(StateT PropRef m Int -&gt; t (StateT PropRef m) Int)
+-&gt; StateT PropRef m Int -&gt; t (StateT PropRef m) Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-11"></span><span>    </span><span id="local-6989586621679139961"><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139961"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">StateT PropRef m PropRef
+forall (m :: * -&gt; *) s. Monad m =&gt; StateT s m s
+</span><span class="hs-identifier hs-var">get</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="annottext">PropRef -&gt; StateT PropRef m ()
+forall (m :: * -&gt; *) s. Monad m =&gt; s -&gt; StateT s m ()
+</span><span class="hs-identifier hs-var">put</span></span><span> </span><span class="annot"><span class="annottext">(PropRef -&gt; StateT PropRef m ()) -&gt; PropRef -&gt; StateT PropRef m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139961"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">PropRef -&gt; (PropRef -&gt; PropRef) -&gt; PropRef
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [a] [a]
+</span><a href="#local-6989586621679139964"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [a] [a]
+-&gt; ([a] -&gt; [a]) -&gt; PropRef -&gt; PropRef
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span><span class="hs-operator hs-var">%~</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679139963"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="annottext">Int -&gt; StateT PropRef m Int
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; StateT PropRef m Int) -&gt; Int -&gt; StateT PropRef m Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139961"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">PropRef -&gt; Getting [Prop] PropRef [Prop] -&gt; [Prop]
+forall s a. s -&gt; Getting a s a -&gt; a
+</span><span class="hs-operator hs-var">^.</span></span><span> </span><span class="annot"><span class="annottext">Getting [Prop] PropRef [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#object"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">[Prop] -&gt; ([Prop] -&gt; Int) -&gt; Int
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">[Prop] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | create a new proof object</span><span>
+</span><span id="line-16"></span><span class="annot"><a href="HsProof.ProofRef.html#newProofObject"><span class="hs-identifier hs-type">newProofObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-type">ObjectId</span></a></span><span>
+</span><span id="line-17"></span><span id="newProofObject"><span class="annot"><span class="annottext">newProofObject :: Prop -&gt; Proof Int
+</span><a href="HsProof.ProofRef.html#newProofObject"><span class="hs-identifier hs-var hs-var">newProofObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop] -&gt; Prop -&gt; Proof Int
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+ASetter PropRef PropRef [a] [a] -&gt; a -&gt; t (StateT PropRef m) Int
+</span><a href="HsProof.ProofRef.html#newProof"><span class="hs-identifier hs-var">newProof</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#object"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- | create a new goal (append to last)</span><span>
+</span><span id="line-20"></span><span class="annot"><a href="HsProof.ProofRef.html#newGoal"><span class="hs-identifier hs-type">newGoal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span id="newGoal"><span class="annot"><span class="annottext">newGoal :: Prop -&gt; Proof ()
+</span><a href="HsProof.ProofRef.html#newGoal"><span class="hs-identifier hs-var hs-var">newGoal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Proof Int -&gt; Proof ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(Proof Int -&gt; Proof ()) -&gt; (Prop -&gt; Proof Int) -&gt; Prop -&gt; Proof ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop] -&gt; Prop -&gt; Proof Int
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+ASetter PropRef PropRef [a] [a] -&gt; a -&gt; t (StateT PropRef m) Int
+</span><a href="HsProof.ProofRef.html#newProof"><span class="hs-identifier hs-var">newProof</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#goal"><span class="hs-identifier hs-var">goal</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- | abstract function for mutating a proof object</span><span>
+</span><span id="line-24"></span><span id="mutProof"><span class="annot"><span class="annottext">mutProof :: ((m -&gt; Identity m) -&gt; s -&gt; Identity s)
+-&gt; Index m -&gt; IxValue m -&gt; t (StateT s m) ()
+</span><a href="HsProof.ProofRef.html#mutProof"><span class="hs-identifier hs-var hs-var">mutProof</span></a></span></span><span> </span><span id="local-6989586621679139947"><span class="annot"><span class="annottext">l :: (m -&gt; Identity m) -&gt; s -&gt; Identity s
+</span><a href="#local-6989586621679139947"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679139946"><span class="annot"><span class="annottext">i :: Index m
+</span><a href="#local-6989586621679139946"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span id="local-6989586621679139945"><span class="annot"><span class="annottext">p :: IxValue m
+</span><a href="#local-6989586621679139945"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StateT s m () -&gt; t (StateT s m) ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(StateT s m () -&gt; t (StateT s m) ())
+-&gt; StateT s m () -&gt; t (StateT s m) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-25"></span><span>    </span><span id="local-6989586621679139944"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679139944"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">StateT s m s
+forall (m :: * -&gt; *) s. Monad m =&gt; StateT s m s
+</span><span class="hs-identifier hs-var">get</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><span class="annottext">s -&gt; StateT s m ()
+forall (m :: * -&gt; *) s. Monad m =&gt; s -&gt; StateT s m ()
+</span><span class="hs-identifier hs-var">put</span></span><span> </span><span class="annot"><span class="annottext">(s -&gt; StateT s m ()) -&gt; s -&gt; StateT s m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679139944"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">s -&gt; (s -&gt; s) -&gt; s
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">(m -&gt; Identity m) -&gt; s -&gt; Identity s
+</span><a href="#local-6989586621679139947"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">((m -&gt; Identity m) -&gt; s -&gt; Identity s)
+-&gt; ((IxValue m -&gt; Identity (IxValue m)) -&gt; m -&gt; Identity m)
+-&gt; (IxValue m -&gt; Identity (IxValue m))
+-&gt; s
+-&gt; Identity s
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Index m -&gt; Traversal' m (IxValue m)
+forall m. Ixed m =&gt; Index m -&gt; Traversal' m (IxValue m)
+</span><span class="hs-identifier hs-var">ix</span></span><span> </span><span class="annot"><span class="annottext">Index m
+</span><a href="#local-6989586621679139946"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">((IxValue m -&gt; Identity (IxValue m)) -&gt; s -&gt; Identity s)
+-&gt; IxValue m -&gt; s -&gt; s
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span><span class="hs-operator hs-var">.~</span></span><span> </span><span class="annot"><span class="annottext">IxValue m
+</span><a href="#local-6989586621679139945"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | mut a proof object</span><span>
+</span><span id="line-29"></span><span class="annot"><a href="HsProof.ProofRef.html#mutProofObject"><span class="hs-identifier hs-type">mutProofObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-type">ObjectId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span id="mutProofObject"><span class="annot"><span class="annottext">mutProofObject :: Int -&gt; Prop -&gt; Proof ()
+</span><a href="HsProof.ProofRef.html#mutProofObject"><span class="hs-identifier hs-var hs-var">mutProofObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+-&gt; Index [Prop] -&gt; IxValue [Prop] -&gt; Proof ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) m s.
+(MonadTrans t, Monad m, Ixed m) =&gt;
+((m -&gt; Identity m) -&gt; s -&gt; Identity s)
+-&gt; Index m -&gt; IxValue m -&gt; t (StateT s m) ()
+</span><a href="HsProof.ProofRef.html#mutProof"><span class="hs-identifier hs-var">mutProof</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#object"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | mutGoal should only mut the current goal</span><span>
+</span><span id="line-33"></span><span class="annot"><a href="HsProof.ProofRef.html#mutGoal"><span class="hs-identifier hs-type">mutGoal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span id="mutGoal"><span class="annot"><span class="annottext">mutGoal :: Prop -&gt; Proof ()
+</span><a href="HsProof.ProofRef.html#mutGoal"><span class="hs-identifier hs-var hs-var">mutGoal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+-&gt; Index [Prop] -&gt; IxValue [Prop] -&gt; Proof ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) m s.
+(MonadTrans t, Monad m, Ixed m) =&gt;
+((m -&gt; Identity m) -&gt; s -&gt; Identity s)
+-&gt; Index m -&gt; IxValue m -&gt; t (StateT s m) ()
+</span><a href="HsProof.ProofRef.html#mutProof"><span class="hs-identifier hs-var">mutProof</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#goal"><span class="hs-identifier hs-var">goal</span></a></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- | finish current goal (remove it from goal list)</span><span>
+</span><span id="line-37"></span><span class="annot"><a href="HsProof.ProofRef.html#finishGoal"><span class="hs-identifier hs-type">finishGoal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span id="finishGoal"><span class="annot"><span class="annottext">finishGoal :: Proof ()
+</span><a href="HsProof.ProofRef.html#finishGoal"><span class="hs-identifier hs-var hs-var">finishGoal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StateT PropRef Identity () -&gt; Proof ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(StateT PropRef Identity () -&gt; Proof ())
+-&gt; StateT PropRef Identity () -&gt; Proof ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-39"></span><span>    </span><span id="local-6989586621679139938"><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139938"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">StateT PropRef Identity PropRef
+forall (m :: * -&gt; *) s. Monad m =&gt; StateT s m s
+</span><span class="hs-identifier hs-var">get</span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">PropRef -&gt; StateT PropRef Identity ()
+forall (m :: * -&gt; *) s. Monad m =&gt; s -&gt; StateT s m ()
+</span><span class="hs-identifier hs-var">put</span></span><span> </span><span class="annot"><span class="annottext">(PropRef -&gt; StateT PropRef Identity ())
+-&gt; PropRef -&gt; StateT PropRef Identity ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139938"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">PropRef -&gt; (PropRef -&gt; PropRef) -&gt; PropRef
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#goal"><span class="hs-identifier hs-var">goal</span></a></span><span> </span><span class="annot"><span class="annottext">ASetter PropRef PropRef [Prop] [Prop]
+-&gt; [Prop] -&gt; PropRef -&gt; PropRef
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span><span class="hs-operator hs-var">.~</span></span><span> </span><span class="annot"><span class="annottext">[Prop] -&gt; [Prop]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">tail</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139938"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">PropRef -&gt; Getting [Prop] PropRef [Prop] -&gt; [Prop]
+forall s a. s -&gt; Getting a s a -&gt; a
+</span><span class="hs-operator hs-var">^.</span></span><span> </span><span class="annot"><span class="annottext">Getting [Prop] PropRef [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#goal"><span class="hs-identifier hs-var">goal</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- | return the Prop using &lt;ObjectId&gt;</span><span>
+</span><span id="line-43"></span><span class="annot"><a href="HsProof.ProofRef.html#getProofObject"><span class="hs-identifier hs-type">getProofObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-type">ObjectId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>
+</span><span id="line-44"></span><span id="getProofObject"><span class="annot"><span class="annottext">getProofObject :: Int -&gt; Proof Prop
+</span><a href="HsProof.ProofRef.html#getProofObject"><span class="hs-identifier hs-var hs-var">getProofObject</span></a></span></span><span> </span><span id="local-6989586621679139935"><span class="annot"><span class="annottext">i :: Int
+</span><a href="#local-6989586621679139935"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StateT PropRef Identity Prop -&gt; Proof Prop
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(StateT PropRef Identity Prop -&gt; Proof Prop)
+-&gt; StateT PropRef Identity Prop -&gt; Proof Prop
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-45"></span><span>    </span><span id="local-6989586621679139934"><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139934"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">StateT PropRef Identity PropRef
+forall (m :: * -&gt; *) s. Monad m =&gt; StateT s m s
+</span><span class="hs-identifier hs-var">get</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">Prop -&gt; StateT PropRef Identity Prop
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Prop -&gt; StateT PropRef Identity Prop)
+-&gt; Prop -&gt; StateT PropRef Identity Prop
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PropRef
+</span><a href="#local-6989586621679139934"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">PropRef -&gt; Getting [Prop] PropRef [Prop] -&gt; [Prop]
+forall s a. s -&gt; Getting a s a -&gt; a
+</span><span class="hs-operator hs-var">^.</span></span><span> </span><span class="annot"><span class="annottext">Getting [Prop] PropRef [Prop]
+Lens' PropRef [Prop]
+</span><a href="HsProof.Types.html#object"><span class="hs-identifier hs-var">object</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Prop] -&gt; Getting (Endo Prop) [Prop] Prop -&gt; Prop
+forall s a. HasCallStack =&gt; s -&gt; Getting (Endo a) s a -&gt; a
+</span><span class="hs-operator hs-var">^?!</span></span><span> </span><span class="annot"><span class="annottext">Index [Prop] -&gt; Traversal' [Prop] (IxValue [Prop])
+forall m. Ixed m =&gt; Index m -&gt; Traversal' m (IxValue m)
+</span><span class="hs-identifier hs-var">ix</span></span><span> </span><span class="annot"><span class="annottext">Int
+Index [Prop]
+</span><a href="#local-6989586621679139935"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- | copy a proof object</span><span>
+</span><span id="line-49"></span><span class="annot"><a href="HsProof.ProofRef.html#forkProofObject"><span class="hs-identifier hs-type">forkProofObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-type">ObjectId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-type">ObjectId</span></a></span><span>
+</span><span id="line-50"></span><span id="forkProofObject"><span class="annot"><span class="annottext">forkProofObject :: Int -&gt; Proof Int
+</span><a href="HsProof.ProofRef.html#forkProofObject"><span class="hs-identifier hs-var hs-var">forkProofObject</span></a></span></span><span> </span><span id="local-6989586621679139931"><span class="annot"><span class="annottext">i :: Int
+</span><a href="#local-6989586621679139931"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Proof Int
+</span><a href="HsProof.ProofRef.html#newProofObject"><span class="hs-identifier hs-var">newProofObject</span></a></span><span> </span><span class="annot"><span class="annottext">(Prop -&gt; Proof Int) -&gt; Proof Prop -&gt; Proof Int
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span><span class="hs-operator hs-var">=&lt;&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Proof Prop
+</span><a href="HsProof.ProofRef.html#getProofObject"><span class="hs-identifier hs-var">getProofObject</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679139931"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- | emty env</span><span>
+</span><span id="line-53"></span><span class="annot"><a href="HsProof.ProofRef.html#newPropRef"><span class="hs-identifier hs-type">newPropRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-type">PropRef</span></a></span><span>
+</span><span id="line-54"></span><span id="newPropRef"><span class="annot"><span class="annottext">newPropRef :: PropRef
+</span><a href="HsProof.ProofRef.html#newPropRef"><span class="hs-identifier hs-var hs-var">newPropRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Prop] -&gt; [Prop] -&gt; PropRef
+</span><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-var">PropRef</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-55"></span></pre></body></html>

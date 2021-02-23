@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE MultiParamTypeClasses #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">HsProof.Types</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Lens.TH</span></span><span>                </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">makeLenses</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Except</span></span><span>     </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">ExceptT</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.State</span></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">State</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">data</span><span> </span><span id="Prop"><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-var">Prop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="None"><span class="annot"><a href="HsProof.Types.html#None"><span class="hs-identifier hs-var">None</span></a></span></span><span>              </span><span class="hs-comment">-- ^ None</span><span>
+</span><span id="line-11"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="T"><span class="annot"><a href="HsProof.Types.html#T"><span class="hs-identifier hs-var">T</span></a></span></span><span>                 </span><span class="hs-comment">-- ^ True</span><span>
+</span><span id="line-12"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="F"><span class="annot"><a href="HsProof.Types.html#F"><span class="hs-identifier hs-var">F</span></a></span></span><span>                 </span><span class="hs-comment">-- ^ False</span><span>
+</span><span id="line-13"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="Atom"><span class="annot"><a href="HsProof.Types.html#Atom"><span class="hs-identifier hs-var">Atom</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>       </span><span class="hs-comment">-- ^ prop</span><span>
+</span><span id="line-14"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="Not"><span class="annot"><a href="HsProof.Types.html#Not"><span class="hs-identifier hs-var">Not</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>          </span><span class="hs-comment">-- ^ negate</span><span>
+</span><span id="line-15"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="%3A%2F%5C"><span class="annot"><a href="HsProof.Types.html#%3A%2F%5C"><span class="hs-operator hs-var">(:/\)</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>   </span><span class="hs-comment">-- ^ and</span><span>
+</span><span id="line-16"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="%3A%5C%2F"><span class="annot"><a href="HsProof.Types.html#%3A%5C%2F"><span class="hs-operator hs-var">(:\/)</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>   </span><span class="hs-comment">-- ^ or</span><span>
+</span><span id="line-17"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="%3A-%3E"><span class="annot"><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-var">(:-&gt;)</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>   </span><span class="hs-comment">-- ^ imply</span><span>
+</span><span id="line-18"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="%3A%3C-%3E"><span class="annot"><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-var">(:&lt;-&gt;)</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>  </span><span class="hs-comment">-- ^ sufficient and necessary</span><span>
+</span><span id="line-19"></span><span>          </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679139894"><span id="local-6989586621679139896"><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Bool
+(Prop -&gt; Prop -&gt; Bool) -&gt; (Prop -&gt; Prop -&gt; Bool) -&gt; Eq Prop
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Prop -&gt; Prop -&gt; Bool
+$c/= :: Prop -&gt; Prop -&gt; Bool
+== :: Prop -&gt; Prop -&gt; Bool
+$c== :: Prop -&gt; Prop -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">infix</span><span> </span><span class="hs-number">8</span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%2F%5C"><span class="hs-operator hs-type">:/\</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">infix</span><span> </span><span class="hs-number">7</span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%5C%2F"><span class="hs-operator hs-type">:\/</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">infixr</span><span> </span><span class="hs-number">6</span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-type">:-&gt;</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">infixr</span><span> </span><span class="hs-number">6</span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-type">:&lt;-&gt;</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679139888"><span id="local-6989586621679139891"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>  </span><span id="local-6989586621679139886"><span class="annot"><span class="annottext">show :: Prop -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#None"><span class="hs-identifier hs-type">None</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;&lt;X&gt;&quot;</span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Atom"><span class="hs-identifier hs-type">Atom</span></a></span><span> </span><span id="local-6989586621679139884"><span class="annot"><span class="annottext">a :: String
+</span><a href="#local-6989586621679139884"><span class="hs-identifier hs-var">a</span></a></span></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679139884"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Not"><span class="hs-identifier hs-type">Not</span></a></span><span>  </span><span id="local-6989586621679139883"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139883"><span class="hs-identifier hs-var">p</span></a></span></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;~&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139883"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139882"><span class="annot"><span class="annottext">a :: Prop
+</span><a href="#local-6989586621679139882"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%2F%5C"><span class="hs-operator hs-type">:/\</span></a></span><span>  </span><span id="local-6989586621679139881"><span class="annot"><span class="annottext">b :: Prop
+</span><a href="#local-6989586621679139881"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;(&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139882"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot; /\\ &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139881"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;)&quot;</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139880"><span class="annot"><span class="annottext">a :: Prop
+</span><a href="#local-6989586621679139880"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%5C%2F"><span class="hs-operator hs-type">:\/</span></a></span><span>  </span><span id="local-6989586621679139879"><span class="annot"><span class="annottext">b :: Prop
+</span><a href="#local-6989586621679139879"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;(&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139880"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot; \\/ &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139879"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;)&quot;</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139878"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139878"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-type">:-&gt;</span></a></span><span>  </span><span id="local-6989586621679139877"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139877"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;(&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139878"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot; -&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139877"><span class="hs-identifier hs-var">q</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;)&quot;</span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139876"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139876"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-type">:&lt;-&gt;</span></a></span><span> </span><span id="local-6989586621679139875"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139875"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;(&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139876"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot; &lt;-&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139875"><span class="hs-identifier hs-var">q</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;)&quot;</span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- | apply transform function to prop</span><span>
+</span><span id="line-36"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-type">mapProp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>
+</span><span id="line-37"></span><span id="mapProp"><span class="annot"><span class="annottext">mapProp :: (Prop -&gt; Prop) -&gt; Prop -&gt; Prop
+</span><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var hs-var">mapProp</span></a></span></span><span> </span><span class="hs-identifier">_</span><span> </span><span class="annot"><a href="HsProof.Types.html#None"><span class="hs-identifier hs-type">None</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="HsProof.Types.html#None"><span class="hs-identifier hs-var">None</span></a></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139873"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139873"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#T"><span class="hs-identifier hs-type">T</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139873"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="HsProof.Types.html#T"><span class="hs-identifier hs-var">T</span></a></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139872"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139872"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#F"><span class="hs-identifier hs-type">F</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139872"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="HsProof.Types.html#F"><span class="hs-identifier hs-var">F</span></a></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Atom"><span class="hs-identifier hs-type">Atom</span></a></span><span> </span><span id="local-6989586621679139871"><span class="annot"><span class="annottext">x :: String
+</span><a href="#local-6989586621679139871"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Prop
+</span><a href="HsProof.Types.html#Atom"><span class="hs-identifier hs-var">Atom</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679139871"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139870"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139870"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Not"><span class="hs-identifier hs-type">Not</span></a></span><span>  </span><span id="local-6989586621679139869"><span class="annot"><span class="annottext">t :: Prop
+</span><a href="#local-6989586621679139869"><span class="hs-identifier hs-var">t</span></a></span></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="HsProof.Types.html#Not"><span class="hs-identifier hs-var">Not</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139870"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139869"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139868"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139868"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139867"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139867"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-type">:-&gt;</span></a></span><span>  </span><span id="local-6989586621679139866"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139866"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139868"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139867"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Prop
+</span><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-var">:-&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139868"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139866"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139865"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139865"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139864"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139864"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-type">:&lt;-&gt;</span></a></span><span> </span><span id="local-6989586621679139863"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139863"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139865"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139864"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Prop
+</span><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-var">:&lt;-&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139865"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139863"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139862"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139862"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139861"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139861"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%2F%5C"><span class="hs-operator hs-type">:/\</span></a></span><span>  </span><span id="local-6989586621679139860"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139860"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139862"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139861"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Prop
+</span><a href="HsProof.Types.html#%3A%2F%5C"><span class="hs-operator hs-var">:/\</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139862"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139860"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="HsProof.Types.html#mapProp"><span class="hs-identifier hs-var">mapProp</span></a></span><span> </span><span id="local-6989586621679139859"><span class="annot"><span class="annottext">f :: Prop -&gt; Prop
+</span><a href="#local-6989586621679139859"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679139858"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139858"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%5C%2F"><span class="hs-operator hs-type">:\/</span></a></span><span>  </span><span id="local-6989586621679139857"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139857"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139859"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139858"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Prop
+</span><a href="HsProof.Types.html#%3A%5C%2F"><span class="hs-operator hs-var">:\/</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop
+</span><a href="#local-6989586621679139859"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139857"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- | Reference for objects and goals during proof</span><span>
+</span><span id="line-48"></span><span class="hs-keyword">data</span><span> </span><span id="PropRef"><span class="annot"><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-var">PropRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PropRef"><span class="annot"><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-var">PropRef</span></a></span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">{</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-comment">-- | final (sub) goals</span><span>
+</span><span id="line-51"></span><span>    </span><span id="_goal"><span class="annot"><span class="annottext">PropRef -&gt; [Prop]
+</span><a href="HsProof.Types.html#_goal"><span class="hs-identifier hs-var hs-var">_goal</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-comment">-- | proof oject list</span><span>
+</span><span id="line-54"></span><span>    </span><span id="_object"><span class="annot"><span class="annottext">PropRef -&gt; [Prop]
+</span><a href="HsProof.Types.html#_object"><span class="hs-identifier hs-var hs-var">_object</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679139848"><span id="local-6989586621679139850"><span id="local-6989586621679139852"><span class="annot"><span class="annottext">Int -&gt; PropRef -&gt; ShowS
+[PropRef] -&gt; ShowS
+PropRef -&gt; String
+(Int -&gt; PropRef -&gt; ShowS)
+-&gt; (PropRef -&gt; String) -&gt; ([PropRef] -&gt; ShowS) -&gt; Show PropRef
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [PropRef] -&gt; ShowS
+$cshowList :: [PropRef] -&gt; ShowS
+show :: PropRef -&gt; String
+$cshow :: PropRef -&gt; String
+showsPrec :: Int -&gt; PropRef -&gt; ShowS
+$cshowsPrec :: Int -&gt; PropRef -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span id="object"><span id="goal"><span class="hs-identifier">makeLenses</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PropRef</span></span></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | result of the proof, wither success or fail at a step </span><span>
+</span><span id="line-61"></span><span class="hs-keyword">data</span><span> </span><span id="Result"><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-var">Result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Proved"><span class="annot"><a href="HsProof.Types.html#Proved"><span class="hs-identifier hs-var">Proved</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Failed"><span class="annot"><a href="HsProof.Types.html#Failed"><span class="hs-identifier hs-var">Failed</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679139838"><span id="local-6989586621679139840"><span id="local-6989586621679139842"><span class="annot"><span class="annottext">Int -&gt; Result -&gt; ShowS
+[Result] -&gt; ShowS
+Result -&gt; String
+(Int -&gt; Result -&gt; ShowS)
+-&gt; (Result -&gt; String) -&gt; ([Result] -&gt; ShowS) -&gt; Show Result
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Result] -&gt; ShowS
+$cshowList :: [Result] -&gt; ShowS
+show :: Result -&gt; String
+$cshow :: Result -&gt; String
+showsPrec :: Int -&gt; Result -&gt; ShowS
+$cshowsPrec :: Int -&gt; Result -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- * the `Proof` types</span><span>
+</span><span id="line-64"></span><span class="hs-keyword">type</span><span> </span><span id="Proof"><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-var">Proof</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ExceptT</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">State</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-type">PropRef</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span class="hs-keyword">type</span><span> </span><span id="Proof%27"><span class="annot"><a href="HsProof.Types.html#Proof%27"><span class="hs-identifier hs-var">Proof'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="HsProof.Types.html#Proof"><span class="hs-identifier hs-type">Proof</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#PropRef"><span class="hs-identifier hs-type">PropRef</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- | the proof result</span><span>
+</span><span id="line-68"></span><span class="hs-keyword">type</span><span> </span><span id="ProofResult"><span class="annot"><a href="HsProof.Types.html#ProofResult"><span class="hs-identifier hs-var">ProofResult</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- | show result</span><span>
+</span><span id="line-71"></span><span id="local-6989586621679139835"><span class="annot"><a href="HsProof.Types.html#showResult"><span class="hs-identifier hs-type">showResult</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679139835"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="HsProof.Types.html#ProofResult"><span class="hs-identifier hs-type">ProofResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679139835"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-72"></span><span id="showResult"><span class="annot"><span class="annottext">showResult :: ProofResult a -&gt; String
+</span><a href="HsProof.Types.html#showResult"><span class="hs-identifier hs-var hs-var">showResult</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span>  </span><span class="annot"><a href="HsProof.Types.html#Proved"><span class="hs-identifier hs-type">Proved</span></a></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;Q.E.D.&quot;</span></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="HsProof.Types.html#showResult"><span class="hs-identifier hs-var">showResult</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="HsProof.Types.html#Failed"><span class="hs-identifier hs-type">Failed</span></a></span><span> </span><span id="local-6989586621679139833"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139833"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;Proof failed with &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139833"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-74"></span><span class="annot"><a href="HsProof.Types.html#showResult"><span class="hs-identifier hs-var">showResult</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679139832"><span class="annot"><span class="annottext">p :: a
+</span><a href="#local-6989586621679139832"><span class="hs-identifier hs-var">p</span></a></span></span><span>         </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679139832"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- id of a proof object</span><span>
+</span><span id="line-77"></span><span class="hs-keyword">type</span><span> </span><span id="ObjectId"><span class="annot"><a href="HsProof.Types.html#ObjectId"><span class="hs-identifier hs-var">ObjectId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- * theorem types</span><span>
+</span><span id="line-80"></span><span class="hs-keyword">type</span><span> </span><span id="Theorem"><span class="annot"><a href="HsProof.Types.html#Theorem"><span class="hs-identifier hs-var">Theorem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>
+</span><span id="line-81"></span><span class="hs-keyword">type</span><span> </span><span id="Theorem%27"><span class="annot"><a href="HsProof.Types.html#Theorem%27"><span class="hs-identifier hs-var">Theorem'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- * Appliable typeclass</span><span>
+</span><span id="line-84"></span><span class="hs-keyword">class</span><span> </span><span id="Appliable"><span class="annot"><a href="HsProof.Types.html#Appliable"><span class="hs-identifier hs-var">Appliable</span></a></span></span><span> </span><span id="local-6989586621679139914"><span class="annot"><a href="#local-6989586621679139914"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679139913"><span class="annot"><a href="#local-6989586621679139913"><span class="hs-identifier hs-type">b</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>  </span><span id="app"><span class="annot"><a href="HsProof.Types.html#app"><span class="hs-identifier hs-type">app</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679139914"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679139913"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="HsProof.Types.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="HsProof.Types.html#Appliable"><span class="hs-identifier hs-type">Appliable</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-comment">-- ! x :-&gt; y only applys to the goal</span><span>
+</span><span id="line-89"></span><span>  </span><span id="local-6989586621679139826"><span class="annot"><span class="annottext">app :: Prop -&gt; Prop -&gt; Either Result Prop
+</span><a href="#local-6989586621679139826"><span class="hs-identifier hs-var hs-var hs-var hs-var">app</span></a></span></span><span> </span><span id="local-6989586621679139825"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139825"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679139824"><span class="annot"><span class="annottext">x :: Prop
+</span><a href="#local-6989586621679139824"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A-%3E"><span class="hs-operator hs-type">:-&gt;</span></a></span><span> </span><span id="local-6989586621679139823"><span class="annot"><span class="annottext">y :: Prop
+</span><a href="#local-6989586621679139823"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679139822"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139822"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139823"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139822"><span class="hs-identifier hs-var">q</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Either Result Prop
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139824"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Result -&gt; Either Result Prop
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prop -&gt; Result
+</span><a href="HsProof.Types.html#Failed"><span class="hs-identifier hs-var">Failed</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139825"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><a href="HsProof.Types.html#app"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span id="local-6989586621679139821"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139821"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679139820"><span class="annot"><span class="annottext">x :: Prop
+</span><a href="#local-6989586621679139820"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><a href="HsProof.Types.html#%3A%3C-%3E"><span class="hs-operator hs-type">:&lt;-&gt;</span></a></span><span> </span><span id="local-6989586621679139819"><span class="annot"><span class="annottext">y :: Prop
+</span><a href="#local-6989586621679139819"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679139818"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139818"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139820"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139818"><span class="hs-identifier hs-var">q</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Either Result Prop
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139819"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-91"></span><span>                     </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139819"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139818"><span class="hs-identifier hs-var">q</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Either Result Prop
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139820"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-92"></span><span>                     </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Result -&gt; Either Result Prop
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prop -&gt; Result
+</span><a href="HsProof.Types.html#Failed"><span class="hs-identifier hs-var">Failed</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139821"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><a href="HsProof.Types.html#app"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span id="local-6989586621679139817"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139817"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679139816"><span class="annot"><span class="annottext">q :: Prop
+</span><a href="#local-6989586621679139816"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139817"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Prop -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139816"><span class="hs-identifier hs-var">q</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Result -&gt; Either Result Prop
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Result
+</span><a href="HsProof.Types.html#Proved"><span class="hs-identifier hs-var">Proved</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Result -&gt; Either Result Prop
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prop -&gt; Result
+</span><a href="HsProof.Types.html#Failed"><span class="hs-identifier hs-var">Failed</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139817"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="HsProof.Types.html#Appliable"><span class="hs-identifier hs-type">Appliable</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Theorem"><span class="hs-identifier hs-type">Theorem</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>  </span><span id="local-6989586621679139814"><span class="annot"><span class="annottext">app :: (Prop -&gt; Either Result Prop) -&gt; Prop -&gt; Either Result Prop
+</span><a href="#local-6989586621679139814"><span class="hs-identifier hs-var hs-var hs-var hs-var">app</span></a></span></span><span> </span><span id="local-6989586621679139813"><span class="annot"><span class="annottext">t :: Prop -&gt; Either Result Prop
+</span><a href="#local-6989586621679139813"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679139812"><span class="annot"><span class="annottext">p :: Prop
+</span><a href="#local-6989586621679139812"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Prop -&gt; Either Result Prop
+</span><a href="#local-6989586621679139813"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Prop
+</span><a href="#local-6989586621679139812"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="HsProof.Types.html#Appliable"><span class="hs-identifier hs-type">Appliable</span></a></span><span> </span><span class="annot"><a href="HsProof.Types.html#Theorem%27"><span class="hs-identifier hs-type">Theorem'</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HsProof.Types.html#Prop"><span class="hs-identifier hs-type">Prop</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-99"></span><span>  </span><span id="local-6989586621679139810"><span class="annot"><span class="annottext">app :: Theorem' -&gt; Theorem'
+</span><a href="#local-6989586621679139810"><span class="hs-identifier hs-var hs-var hs-var hs-var">app</span></a></span></span><span> </span><span id="local-6989586621679139809"><span class="annot"><span class="annottext">t :: Theorem'
+</span><a href="#local-6989586621679139809"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679139808"><span class="annot"><span class="annottext">p :: [Prop]
+</span><a href="#local-6989586621679139808"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Theorem'
+</span><a href="#local-6989586621679139809"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">[Prop]
+</span><a href="#local-6989586621679139808"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-100"></span></pre></body></html>
