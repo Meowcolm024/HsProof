@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Types where
+module HsProof.Types where
 
 import           Control.Lens.TH                ( makeLenses )
 import           Control.Monad.Trans.Except     ( ExceptT )
@@ -61,7 +61,14 @@ data Result = Proved | Failed Prop deriving Show
 -- * the `Proof` type draft
 type Proof = ExceptT Result (State PropRef)
 type Proof' = Proof PropRef
+
 type ProofResult = Either Result
+
+-- | show result
+showResult :: Show a => ProofResult a -> String
+showResult (Left  Proved    ) = "Q.E.D."
+showResult (Left  (Failed p)) = "Proof failed with " ++ show p
+showResult (Right p         ) = show p
 
 -- id of a proof object
 type ObjectId = Int

@@ -1,10 +1,10 @@
 import           Control.Monad                  ( (>=>) )
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.State
-import           Logic
-import           Proof
-import           ProofRef
-import           Types
+import           HsProof.Logic
+import           HsProof.Proof
+import           HsProof.ProofRef
+import           HsProof.Types
 
 -- | proof a -> (a -> ~b) -> (~c -> b) -> c
 simpleProof :: Proof Prop
@@ -72,11 +72,6 @@ proofExample = proof exampleTheorem $ do
 
 doProof :: Proof a -> Either Result a
 doProof p = evalState (runExceptT p) newPropRef
-
-showResult :: Show a => ProofResult a -> String
-showResult (Left  Proved    ) = "Q.E.D."
-showResult (Left  (Failed p)) = "Proof failed with " ++ show p
-showResult (Right p         ) = show p
 
 printResult :: Show a => ProofResult a -> IO ()
 printResult = putStrLn . showResult

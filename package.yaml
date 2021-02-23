@@ -28,17 +28,6 @@ dependencies:
 library:
   source-dirs: src
 
-executables:
-  HsProof-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - HsProof
-
 tests:
   HsProof-test:
     main:                Spec.hs

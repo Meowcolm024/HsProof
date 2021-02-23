@@ -1,6 +1,6 @@
-module Logic where
+module HsProof.Logic where
 
-import           Types
+import           HsProof.Types
 
 deMorgan :: Theorem
 deMorgan (Not (p :/\ q)) = Right $ Not p :\/ Not q

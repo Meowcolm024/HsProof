@@ -1,9 +1,9 @@
-module ProofRef where
+module HsProof.ProofRef where
 
 import           Control.Lens
 import           Control.Monad.Trans
 import           Control.Monad.Trans.State
-import           Types
+import           HsProof.Types
 
 newProof l p = lift $ do
     ref <- get

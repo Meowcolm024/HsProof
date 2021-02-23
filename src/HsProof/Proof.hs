@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Proof where
+module HsProof.Proof where
 
 import           Control.Lens                   ( (^.) )
 import           Control.Monad                  ( (>=>) )
@@ -7,8 +7,8 @@ import           Control.Monad.Except           ( runExceptT )
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Except     ( except )
 import           Control.Monad.Trans.State
-import           ProofRef
-import           Types
+import           HsProof.ProofRef
+import           HsProof.Types
 
 -- | finish the proof 
 qed :: Proof a
