@@ -18,6 +18,9 @@ data Prop = None              -- ^ @_@
           | (:<->) Prop Prop  -- ^ <->
           deriving Eq
 
+infixr :->
+infixr :<->
+
 instance Show Prop where
   show None       = "<X>"
   show (Atom a  ) = a
@@ -57,6 +60,8 @@ data Result = Proved | Failed Prop deriving Show
 
 -- * the `Proof` type draft
 type Proof = ExceptT Result (State PropRef)
+type Proof' = Proof PropRef
+type ProofResult = Either Result
 
 -- id of a proof object
 type ObjectId = Int
@@ -69,6 +74,7 @@ class Appliable a b where
   app :: a -> b -> Either Result Prop
 
 instance Appliable Prop Prop where
+  -- ! x :-> y only applys to the goal
   app p@(x :-> y) q = if y == q then Right x else Left (Failed p)
   app p@(x :<-> y) q | x == q    = Right y
                      | y == q    = Right x

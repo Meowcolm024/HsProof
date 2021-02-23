@@ -33,9 +33,3 @@ disjunctionL x         = Left $ Failed x
 disjunctionR :: Theorem
 disjunctionR (_ :/\ q) = Right q
 disjunctionR x         = Left $ Failed x
-
--- | applyTo acts differently, so we need a separate method
-imply :: Theorem'
-imply [t@(p :->  q), h] = if p == h then Right q else Left $ Failed t
-imply [t@(_ :<-> _), h] = app t h
-imply _                 = Left $ Failed None

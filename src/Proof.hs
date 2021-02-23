@@ -1,6 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Proof where
 
+import           Control.Lens                   ( (^.) )
+import           Control.Monad                  ( (>=>) )
+import           Control.Monad.Except           ( runExceptT )
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Except     ( except )
 import           Control.Monad.Trans.State
@@ -23,6 +26,10 @@ abort = do
         []      -> Left (Failed None)
         (x : _) -> Left (Failed x)
 
+-- | show the first goal
+status :: Proof PropRef
+status = lift get >>= except . Right
+
 exfalso :: ObjectId -> Proof ()
 exfalso i = do
     ref <- lift get
@@ -31,7 +38,7 @@ exfalso i = do
         F -> finishGoal
         x -> except $ Left (Failed x)
 
--- | apply to the goal
+-- | apply theorem/prop to the goal
 apply' :: Appliable a Prop => a -> Proof ()
 apply' p = do
     ref <- lift get
@@ -44,7 +51,7 @@ apply' p = do
 apply :: ObjectId -> Proof ()
 apply i = apply' =<< getProofObject i
 
--- | apply to multiple props
+-- | apply to multiple props and create a new prop object
 applyToM :: Appliable a [Prop] => a -> [ObjectId] -> Proof ObjectId
 applyToM p is = do
     ref <- lift get
@@ -54,8 +61,8 @@ applyToM p is = do
         Left  f  -> except (Left f)
 
 -- | applyM, but modify one instead of creating a new one
-applyM' :: Appliable a [Prop] => a -> [ObjectId] -> ObjectId -> Proof ()
-applyM' t ps o = t `applyToM` ps >>= getProofObject >>= mutProofObject o
+applyToM' :: Appliable a [Prop] => a -> [ObjectId] -> ObjectId -> Proof ()
+applyToM' t ps o = t `applyToM` ps >>= getProofObject >>= mutProofObject o
 
 -- | apply to a prop
 applyTo' :: Appliable a Prop => a -> ObjectId -> Proof ()
@@ -69,3 +76,43 @@ applyTo' p i = do
 -- | same as applyTo', but using ObjectId
 applyTo :: ObjectId -> ObjectId -> Proof ()
 applyTo t p = flip applyTo' p =<< getProofObject t
+
+-- | like intro in coq
+intro :: Proof ObjectId
+intro = do
+    ref <- lift get
+    case ref ^. goal of
+        (x : _) -> case x of
+            (p :-> q) -> mutGoal 0 q >> newProofObject p
+            _         -> except $ Left (Failed x)
+        _ -> except $ Left (Failed None)
+
+-- | do proofs with intro
+proof :: Prop -> Proof a -> ProofResult a
+proof pp pf = evalState (runExceptT pf) (PropRef [pp] [])
+
+-- | applyTo acts differently, so we need a separate method
+imply :: Theorem'
+imply [t@(p :->  q), h] = if p == h then Right q else Left $ Failed t
+imply [t@(_ :<-> _), h] = app t h
+imply _                 = Left $ Failed None
+
+-- | the lifted theorem
+theorem' :: ObjectId -> Proof Theorem
+theorem' i = do
+    ref <- lift get
+    obj <- getProofObject i
+    return $ theorem obj
+
+-- | lifts a prop to theorem
+theorem :: Prop -> Theorem
+theorem t@(p :->  q) h = imply [t, h]
+theorem t@(p :<-> q) h = imply [t, h]
+theorem _            _ = Left $ Failed None
+
+($-) :: Prop -> Theorem -> Theorem
+p $- q = theorem p >=> q
+
+-- | lifted (>=>) combining theorems: (a -> b) -> (b -> c) => (a -> c)
+(>$>) :: ObjectId -> ObjectId -> Proof Theorem
+p >$> q = (>=>) <$> theorem' p <*> theorem' q

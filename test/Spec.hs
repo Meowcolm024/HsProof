@@ -1,14 +1,10 @@
-import           Control.Monad.Trans
+import           Control.Monad                  ( (>=>) )
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.State
 import           Logic
 import           Proof
 import           ProofRef
 import           Types
-
--- | show the first goal
-status :: Proof PropRef
-status = lift get >>= except . Right
 
 -- | proof a -> (a -> ~b) -> (~c -> b) -> c
 simpleProof :: Proof Prop
@@ -56,26 +52,39 @@ exfTest = do
     qed
 
 -- | q -> (q -> ~q) -> (~p -> r /\ s) -> r
-example :: Proof PropRef
-example = do
-    p    <- newProofObject (Not (Atom "q"))
-    h    <- newProofObject (Atom "p" :-> Atom "q")
-    g    <- newProofObject (Not (Atom "p") :-> (Atom "r" :/\ Atom "s"))
-    goal <- newGoal (Atom "r")
+exampleTheorem :: Prop
+exampleTheorem =
+    Not (Atom "q")
+        :-> (Atom "p" :-> Atom "q")
+        :-> (Not (Atom "p") :-> (Atom "r" :/\ Atom "s"))
+        :-> Atom "r"
+
+proofExample :: ProofResult PropRef
+proofExample = proof exampleTheorem $ do
+    a <- intro      -- ~q
+    h <- intro      -- p -> q
+    g <- intro      -- ~p -> (r /\ s)
     contrapostive `applyTo'` h
-    applyM' imply [h, p] h
-    applyM' imply [g, h] g
-    disjunctionL `applyTo'` g
-    apply g
+    (h >$> g) >>= (`applyTo'` a)
+    disjunctionL `applyTo'` a
+    apply a
     qed
 
 doProof :: Proof a -> Either Result a
 doProof p = evalState (runExceptT p) newPropRef
 
+showResult :: Show a => ProofResult a -> String
+showResult (Left  Proved    ) = "Q.E.D."
+showResult (Left  (Failed p)) = "Proof failed with " ++ show p
+showResult (Right p         ) = show p
+
+printResult :: Show a => ProofResult a -> IO ()
+printResult = putStrLn . showResult
+
 main :: IO ()
 main = do
-    print $ doProof simpleProof
-    print $ doProof simpleProof'
-    print $ doProof statusTest
-    print $ doProof exfTest
-    print $ doProof example
+    printResult $ doProof simpleProof
+    printResult $ doProof simpleProof'
+    printResult $ doProof statusTest
+    printResult $ doProof exfTest
+    printResult $ proofExample
