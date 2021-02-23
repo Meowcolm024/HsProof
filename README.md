@@ -1,8 +1,10 @@
 # HsProof
 
-A simple theorem proof assistant written in Haskell.
+![workflow](https://github.com/meowcolm024/HsProof/actions/workflows/haskell.yml/badge.svg)
 
-An extremely flawed theorem proof assistant not meant for practical use.
+A simple proof assistant written in Haskell.
+
+An extremely flawed proof assistant not meant for practical use.
 But this is a really fun project to work with :P
 
 ## Examples
@@ -47,12 +49,12 @@ proofhw = proof hw $ do
     h1 <- intro                         -- h1: s -> t
     h2 <- intro                         -- h2: ~r \/ ~f -> s /\ l
     contrapostive `applyTo'` h1         -- h1: ~t -> ~s
-    q <- applyToM imply [h1, p]         -- q: ~ s
-    contrapostive `applyTo'` h2         -- h2: ~(s /\ l) -> ~ (~r \/ ~f)
+    q <- applyToM imply [h1, p]         -- q: ~s
+    contrapostive `applyTo'` h2         -- h2: ~(s /\ l) -> ~(~r \/ ~f)
     -- create a tmp l for addition: ~s -> ~s \/ ~l
     tmp <- newProofObject (Not (Atom "l"))
     t   <- applyToM addition [q, tmp]   -- t: ~s \/ ~l
-    deMorgan `applyTo'` t               -- t: ~ (s /\ l)
+    deMorgan `applyTo'` t               -- t: ~(s /\ l)
     applyToM' imply [h2, t] t           -- t: ~(~r \/ ~f)
     deMorgan `applyTo'` t               -- t: ~~r /\ ~~f
     eliminateDN `applyTo'` t            -- t: r /\ f

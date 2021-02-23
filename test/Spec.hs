@@ -81,12 +81,12 @@ proofhw = proof hw $ do
     h1 <- intro                         -- h1: s -> t
     h2 <- intro                         -- h2: ~r \/ ~f -> s /\ l
     contrapostive `applyTo'` h1         -- h1: ~t -> ~s
-    q <- applyToM imply [h1, p]         -- q: ~ s
-    contrapostive `applyTo'` h2         -- h2: ~(s /\ l) -> ~ (~r \/ ~f)
+    q <- applyToM imply [h1, p]         -- q: ~s
+    contrapostive `applyTo'` h2         -- h2: ~(s /\ l) -> ~(~r \/ ~f)
     -- create a tmp l for addition: ~s -> ~s \/ ~l
     tmp <- newProofObject (Not (Atom "l"))
     t   <- applyToM addition [q, tmp]   -- t: ~s \/ ~l
-    deMorgan `applyTo'` t               -- t: ~ (s /\ l)
+    deMorgan `applyTo'` t               -- t: ~(s /\ l)
     applyToM' imply [h2, t] t           -- t: ~(~r \/ ~f)
     deMorgan `applyTo'` t               -- t: ~~r /\ ~~f
     eliminateDN `applyTo'` t            -- t: r /\ f
