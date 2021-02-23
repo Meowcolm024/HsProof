@@ -2,29 +2,39 @@
 
 ![workflow](https://github.com/meowcolm024/HsProof/actions/workflows/haskell.yml/badge.svg)
 
-A simple proof assistant written in Haskell.
+A simple proof assistant written in *Haskell*.
 
-An extremely flawed proof assistant not meant for practical use.
-But this is a really fun project to work with :P
+This is an extremely poorly-designed proof assistant that is not meant for practical use.
+But it is a really fun project to work with :P
+
+I simply use this project to spractice using *monad transformers*, *state monad* and *lenses* :D
 
 ## Build
+
+build:
 
 ``` sh
 $ stack build
 ```
 
-run example:
+run the example:
 
 ``` sh
 $ stack exec HsProof-example
+Prove: (~t -> ((s -> t) -> (((~r \/ ~f) -> (s /\ l)) -> r)))
+Result: Q.E.D.
 ```
 
 ## Examples
 
-current status:
+A simple example:
 
 ``` haskell
--- | q -> (q -> ~q) -> (~p -> r /\ s) -> r
+-- predicates: 
+--     (1) q 
+--     (2) p -> q 
+--     (3) ~p -> r /\ s
+-- to proof: r
 exampleTheorem :: Prop
 exampleTheorem =
     Not (Atom "q")
@@ -44,7 +54,7 @@ proofExample = proof exampleTheorem $ do
     qed
 ```
 
-another example:
+Here is another [example](example/Example.hs):
 
 ``` haskell
 -- | ~t -> (s -> t) -> (~r \/ ~f -> s /\ l) -> r

@@ -30,10 +30,11 @@ abort = do
         []      -> Left (Failed None)
         (x : _) -> Left (Failed x)
 
--- | show the first goal
+-- | show all proof content
 status :: Proof PropRef
 status = lift get >>= except . Right
 
+-- | exfalso: F -> anything
 exfalso :: ObjectId -> Proof ()
 exfalso i = do
     ref <- lift get
@@ -49,7 +50,7 @@ apply' p = do
     case app p . head . _goal $ ref of
         Left  Proved      -> finishGoal
         Left  (Failed p') -> except $ Left (Failed p')
-        Right p'          -> mutGoal 0 p'
+        Right p'          -> mutGoal p'
 
 -- | same as apply', but using ObjectId
 apply :: ObjectId -> Proof ()
@@ -87,13 +88,9 @@ intro = do
     ref <- lift get
     case ref ^. goal of
         (x : _) -> case x of
-            (p :-> q) -> mutGoal 0 q >> newProofObject p
+            (p :-> q) -> mutGoal q >> newProofObject p
             _         -> except $ Left (Failed x)
         _ -> except $ Left (Failed None)
-
--- | copy a proof object
-forkObj :: ObjectId -> Proof ObjectId
-forkObj i = newProofObject =<< getProofObject i
 
 -- | applyTo acts differently, so we need a separate method
 imply :: Theorem'
@@ -101,7 +98,7 @@ imply [t@(p :->  q), h] = if p == h then Right q else Left $ Failed t
 imply [t@(_ :<-> _), h] = app t h
 imply _                 = Left $ Failed None
 
--- | the lifted theorem
+-- | lift a prop to theorem using ObjectId
 theorem' :: ObjectId -> Proof Theorem
 theorem' i = do
     ref <- lift get

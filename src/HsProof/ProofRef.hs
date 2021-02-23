@@ -1,6 +1,7 @@
 module HsProof.ProofRef where
 
 import           Control.Lens
+import           Control.Monad                  ( void )
 import           Control.Monad.Trans
 import           Control.Monad.Trans.State
 import           HsProof.Types
@@ -13,8 +14,9 @@ newProof l p = lift $ do
 newProofObject :: Prop -> Proof ObjectId
 newProofObject = newProof object
 
-newGoal :: Prop -> Proof ObjectId
-newGoal = newProof goal
+-- | create a new goal (append to last)
+newGoal :: Prop -> Proof ()
+newGoal = void . newProof goal
 
 mutProof l i p = lift $ do
     ref <- get
@@ -23,9 +25,11 @@ mutProof l i p = lift $ do
 mutProofObject :: ObjectId -> Prop -> Proof ()
 mutProofObject = mutProof object
 
-mutGoal :: ObjectId -> Prop -> Proof ()
-mutGoal = mutProof goal
+-- | mutGoal should only mut the current goal
+mutGoal :: Prop -> Proof ()
+mutGoal = mutProof goal 0
 
+-- | finish current goal (remove it from goal list)
 finishGoal :: Proof ()
 finishGoal = lift $ do
     ref <- get
@@ -35,6 +39,10 @@ getProofObject :: ObjectId -> Proof Prop
 getProofObject i = lift $ do
     ref <- get
     return $ (ref ^. object) ^?! ix i
+
+-- | copy a proof object
+forkProofObject :: ObjectId -> Proof ObjectId
+forkProofObject i = newProofObject =<< getProofObject i
 
 newPropRef :: PropRef
 newPropRef = PropRef [] []

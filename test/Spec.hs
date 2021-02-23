@@ -25,7 +25,7 @@ simpleProof' = do
     a    <- newProofObject (Atom "a")
     h    <- newProofObject (Atom "a" :-> Atom "b")
     h'   <- newProofObject (Atom "a" :-> Atom "a")
-    goal <- newGoal (Atom "b")
+    newGoal (Atom "b")
     apply h'
     apply h
     apply a
@@ -35,7 +35,7 @@ statusTest :: Proof PropRef
 statusTest = do
     a    <- newProofObject (Atom "a")
     h    <- newProofObject (Atom "b" :-> Atom "c")
-    goal <- newGoal (Atom "c")
+    newGoal (Atom "c")
     apply h
     status
 
