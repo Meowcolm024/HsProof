@@ -91,6 +91,10 @@ intro = do
 proof :: Prop -> Proof a -> ProofResult a
 proof pp pf = evalState (runExceptT pf) (PropRef [pp] [])
 
+-- | copy a proof object
+fork :: ObjectId -> Proof ObjectId
+fork i = newProofObject =<< getProofObject i
+
 -- | applyTo acts differently, so we need a separate method
 imply :: Theorem'
 imply [t@(p :->  q), h] = if p == h then Right q else Left $ Failed t

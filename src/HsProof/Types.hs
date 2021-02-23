@@ -18,8 +18,10 @@ data Prop = None              -- ^ @_@
           | (:<->) Prop Prop  -- ^ <->
           deriving Eq
 
-infixr :->
-infixr :<->
+infix 8 :/\
+infix 7 :\/
+infixr 6 :->
+infixr 6 :<->
 
 instance Show Prop where
   show None       = "<X>"

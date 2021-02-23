@@ -10,7 +10,7 @@ exampleTheorem :: Prop
 exampleTheorem =
     Not (Atom "q")
         :-> (Atom "p" :-> Atom "q")
-        :-> (Not (Atom "p") :-> (Atom "r" :/\ Atom "s"))
+        :-> (Not (Atom "p") :-> Atom "r" :/\ Atom "s")
         :-> Atom "r"
 
 proofExample :: ProofResult PropRef

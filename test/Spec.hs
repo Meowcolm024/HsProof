@@ -1,4 +1,3 @@
-import           Control.Monad                  ( (>=>) )
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.State
 import           HsProof.Logic
@@ -39,15 +38,13 @@ statusTest = do
     apply h
     status
 
--- | exf
-exfTest :: Proof Prop
-exfTest = do
-    a    <- newProofObject (Atom "a")
-    b    <- newProofObject (Not (Atom "a"))
-    d    <- conjunction `applyToM` [a, b]
-    goal <- newGoal (Atom "c")
-    let theorem p@(x :/\ Not y) = if x == y then Right F else Left $ Failed p
-    theorem `applyTo'` d
+-- | exfalso
+exfTest :: ProofResult PropRef
+exfTest = proof (Atom "a" :-> Not (Atom "a") :-> Atom "c") $ do
+    a <- intro      -- a
+    b <- intro      -- ~a
+    d <- conjunction `applyToM` [a, b]
+    negation `applyTo'` d
     exfalso d
     qed
 
@@ -56,7 +53,7 @@ exampleTheorem :: Prop
 exampleTheorem =
     Not (Atom "q")
         :-> (Atom "p" :-> Atom "q")
-        :-> (Not (Atom "p") :-> (Atom "r" :/\ Atom "s"))
+        :-> (Not (Atom "p") :-> Atom "r" :/\ Atom "s")
         :-> Atom "r"
 
 proofExample :: ProofResult PropRef
@@ -66,7 +63,7 @@ proofExample = proof exampleTheorem $ do
     g <- intro      -- ~p -> (r /\ s)
     contrapostive `applyTo'` h
     (h >$> g) >>= (`applyTo'` a)
-    disjunctionL `applyTo'` a
+    simplificationL `applyTo'` a
     apply a
     qed
 
@@ -81,5 +78,5 @@ main = do
     printResult $ doProof simpleProof
     printResult $ doProof simpleProof'
     printResult $ doProof statusTest
-    printResult $ doProof exfTest
-    printResult $ proofExample
+    printResult exfTest
+    printResult proofExample
