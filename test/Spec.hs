@@ -67,6 +67,32 @@ proofExample = proof exampleTheorem $ do
     apply a
     qed
 
+hw :: Prop
+hw =
+    Not (Atom "t")
+        :-> (Atom "s" :-> Atom "t")
+        :-> (Not (Atom "r") :\/ Not (Atom "f") :-> Atom "s" :/\ Atom "l")
+        :-> Atom "r"
+
+proofhw :: ProofResult PropRef
+proofhw = proof hw $ do
+    p  <- intro                         -- p: ~t
+    h1 <- intro                         -- h1: s -> t
+    h2 <- intro                         -- ~r \/ ~f -> s /\ l
+    contrapostive `applyTo'` h1         -- ~t -> ~s
+    q <- applyToM imply [h1, p]         -- q: ~ s
+    contrapostive `applyTo'` h2         -- ~(s /\ l) -> ~ (~r \/ ~f)
+    -- create a tmp l for addition: s -> s \/ l
+    tmp <- newProofObject (Not (Atom "l"))
+    t   <- applyToM addition [q, tmp]   -- t: ~s \/ ~l
+    deMorgan `applyTo'` t               -- ~ (s /\ l)
+    applyToM' imply [h2, t] t           -- ~(~r \/ ~f)
+    deMorgan `applyTo'` t               -- ~~r /\ ~~f
+    eliminateDN `applyTo'` t            -- r /\ f
+    simplificationL `applyTo'` t        -- r
+    apply t
+    qed
+
 doProof :: Proof a -> Either Result a
 doProof p = evalState (runExceptT p) newPropRef
 
@@ -80,3 +106,4 @@ main = do
     printResult $ doProof statusTest
     printResult exfTest
     printResult proofExample
+    printResult proofhw

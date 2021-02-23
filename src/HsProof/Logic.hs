@@ -35,9 +35,11 @@ distributive (p :\/ (q :/\ h)) = Right $ (p :/\ q) :\/ (p :/\ h)
 distributive x                 = Left $ Failed x
 
 deMorgan :: Theorem
-deMorgan (Not (p :/\ q)) = Right $ Not p :\/ Not q
-deMorgan (Not (p :\/ q)) = Right $ Not p :/\ Not q
-deMorgan x               = Left $ Failed x
+deMorgan (Not (p :/\ q)  ) = Right $ Not p :\/ Not q
+deMorgan (Not (p :\/ q)  ) = Right $ Not p :/\ Not q
+deMorgan (Not p :/\ Not q) = Right $ Not (p :\/ q)
+deMorgan (Not p :\/ Not q) = Right $ Not (p :/\ q)
+deMorgan x                 = Left $ Failed x
 
 contrapostive :: Theorem
 contrapostive (p :-> q) = Right $ Not q :-> Not p
